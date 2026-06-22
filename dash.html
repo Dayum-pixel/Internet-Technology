@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hariss Agreement</title>
+<style>
+  :root{
+    --ink:#1c1f1a;
+    --paper:#fbfaf7;
+    --line:#d8d3c4;
+    --accent:#5b6b4f;
+    --accent-dark:#3f4a37;
+    --muted:#7a7768;
+    --field-bg:#f3f1e9;
+    --warn:#9c4b3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Georgia','Iowan Old Style',serif;
+    background:#e9e6db;
+    color:var(--ink);
+  }
+  .app-bar{
+    background:var(--accent-dark);
+    color:#f3f1e9;
+    padding:14px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+  }
+  .app-bar h1{
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    margin:0;
+  }
+  .app-bar .doc-switch{
+    display:flex;
+    gap:8px;
+  }
+  .app-bar select, .app-bar button{
+    font-family:inherit;
+    font-size:13px;
+    padding:7px 12px;
+    border-radius:4px;
+    border:1px solid #6d7a62;
+    background:#4b5840;
+    color:#f3f1e9;
+    cursor:pointer;
+  }
+  .app-bar button.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    font-weight:600;
+  }
+  .app-bar button.primary:hover{background:#6c7d5e;}
+  .app-bar select:hover, .app-bar button:hover{background:#5a6850;}
+
+  .layout{
+    display:flex;
+    min-height:calc(100vh - 53px);
+  }
+  .editor-pane{
+    width:380px;
+    flex-shrink:0;
+    background:#f1efe6;
+    border-right:1px solid var(--line);
+    padding:20px;
+    overflow-y:auto;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+  }
+  .editor-pane h2{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin:18px 0 10px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+  }
+  .editor-pane h2:first-child{margin-top:0;}
+  .field{
+    margin-bottom:12px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--accent-dark);
+    margin-bottom:4px;
+  }
+  .field .hint{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:4px;
+    font-style:italic;
+  }
+  .field input, .field textarea{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .field textarea{
+    resize:vertical;
+    min-height:60px;
+  }
+  .field input:focus, .field textarea:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .tag-prefill{
+    display:inline-block;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    background:#dfe6da;
+    color:var(--accent-dark);
+    padding:1px 6px;
+    border-radius:2px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .tag-user{
+    display:inline-block;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    background:#f0ded9;
+    color:var(--warn);
+    padding:1px 6px;
+    border-radius:2px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+
+  .doc-pane{
+    flex:1;
+    padding:40px;
+    display:flex;
+    justify-content:center;
+    overflow-y:auto;
+  }
+  .sheet{
+    background:var(--paper);
+    width:780px;
+    max-width:100%;
+    min-height:1000px;
+    padding:70px 64px;
+    box-shadow:0 2px 18px rgba(0,0,0,.18);
+    line-height:1.6;
+  }
+
+  .doc-header{
+    text-align:center;
+    margin-bottom:36px;
+    border-bottom:2px solid var(--accent-dark);
+    padding-bottom:20px;
+  }
+  .doc-header .org-name{
+    font-size:13px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .doc-header .doc-title{
+    font-size:30px;
+    font-weight:700;
+    color:var(--accent-dark);
+    letter-spacing:.02em;
+  }
+  .doc-header .doc-subtitle{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  /* ---- memo-style header block (Equipment Handling Agreement) ---- */
+  .memo-header-table{
+    width:100%;
+    border-collapse:collapse;
+    border:1.5px solid var(--ink);
+    margin-bottom:18px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12.5px;
+  }
+  .memo-header-table td{
+    border-right:1.5px solid var(--ink);
+    padding:10px 14px;
+    vertical-align:top;
+  }
+  .memo-header-table td:last-child{border-right:none;}
+  .memo-header-table .logo-cell{
+    width:22%;
+    text-align:center;
+    font-weight:700;
+    letter-spacing:.1em;
+    font-size:14px;
+    color:var(--accent-dark);
+  }
+  .memo-header-table .title-cell{
+    width:48%;
+    font-weight:700;
+    line-height:1.4;
+  }
+  .memo-header-table .meta-cell{
+    width:30%;
+    line-height:1.6;
+  }
+  .memo-date-line{
+    text-align:right;
+    font-size:12px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    margin-bottom:14px;
+  }
+  .memo-fromto{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    line-height:1.7;
+    margin-bottom:6px;
+  }
+  .memo-fromto .k{
+    display:inline-block;
+    width:70px;
+    font-weight:700;
+  }
+  .memo-divider{
+    border:none;
+    border-top:1px dashed var(--ink);
+    margin:14px 0 22px;
+  }
+  .equip-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12.5px;
+    margin-top:6px;
+  }
+  .equip-table th, .equip-table td{
+    border:1px solid var(--ink);
+    padding:9px 10px;
+    text-align:left;
+    vertical-align:top;
+  }
+  .equip-table th{
+    background:var(--field-bg);
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:.03em;
+  }
+  .equip-row-controls{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px;
+    margin-bottom:8px;
+  }
+  .equip-row-controls .equip-fields{
+    flex:1;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+  .equip-row-controls input{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+  }
+  .equip-row-controls .equip-label{
+    font-size:9px;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:block;
+    margin-bottom:2px;
+  }
+  .equip-remove{
+    background:none;
+    border:none;
+    color:var(--warn);
+    cursor:pointer;
+    font-size:18px;
+    line-height:1;
+    padding:4px 6px;
+    align-self:flex-start;
+  }
+  .witness-block{
+    margin-top:50px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    line-height:2.4;
+  }
+  .witness-block .wline{
+    border-bottom:1px solid var(--ink);
+    display:inline-block;
+    min-width:260px;
+    padding-bottom:2px;
+  }
+  .doc-body p{margin:0 0 16px;}
+  .doc-body .clause-title{
+    font-weight:700;
+    margin-top:22px;
+    margin-bottom:6px;
+    color:var(--accent-dark);
+  }
+  .fillable{
+    background:var(--field-bg);
+    border-bottom:1px solid var(--accent);
+    padding:1px 4px;
+    font-weight:600;
+    color:var(--accent-dark);
+  }
+  .fillable.empty{
+    color:#b5a9a0;
+    font-style:italic;
+    font-weight:400;
+  }
+  .sig-block{
+    display:flex;
+    justify-content:space-between;
+    margin-top:60px;
+    gap:40px;
+  }
+  .sig-line{
+    flex:1;
+  }
+  .sig-line .line{
+    border-bottom:1px solid var(--ink);
+    height:36px;
+  }
+  .sig-line .label{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+  }
+  .cert-body{
+    text-align:center;
+    padding-top:10px;
+  }
+  .cert-body .presented{
+    font-size:14px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .cert-body .recipient{
+    font-size:34px;
+    font-weight:700;
+    color:var(--accent-dark);
+    margin:10px 0 18px;
+    border-bottom:1px solid var(--line);
+    display:inline-block;
+    padding-bottom:8px;
+  }
+  .cert-body .desc{
+    max-width:520px;
+    margin:0 auto 26px;
+    font-size:15px;
+    color:var(--ink);
+  }
+  .cert-footer{
+    display:flex;
+    justify-content:space-around;
+    margin-top:50px;
+  }
+  .cert-footer .sig-line{flex:none;width:220px;}
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;}
+    .app-bar, .editor-pane{display:none !important;}
+    .layout{display:block;}
+    .doc-pane{padding:0;display:block;}
+    .sheet{
+      box-shadow:none;
+      width:auto;
+      min-height:0;
+      padding:0;
+      margin:0;
+    }
+    .fillable.empty{color:#999;}
+    .memo-header-table, .equip-table{break-inside:avoid;}
+    .equip-table tr{break-inside:avoid;}
+  }
+  @media (max-width:860px){
+    .layout{flex-direction:column;}
+    .editor-pane{width:100%;border-right:none;border-bottom:1px solid var(--line);}
+    .sheet{padding:40px 24px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-bar">
+  <h1>EQUIPMENT AGREEMENT</h1>
+  <div class="doc-switch">
+    <select id="docTypeSelect" onchange="switchDocType(this.value)">
+      <option value="contract">Equipment Handling Agreement</option>
+      <option value="certificate">Certificate of Completion</option>
+    </select>
+    <button class="primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="editor-pane">
+
+    <div id="editor-contract">
+      <h2>Pre-filled details</h2>
+      <div class="field">
+        <label>Company name <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_orgName" oninput="render()" value="HARISS INTERNATIONAL LIMITED">
+      </div>
+      <div class="field">
+        <label>Document title <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_docTitle" oninput="render()" value="Employee Equipment Handling Agreement">
+      </div>
+      <div class="field">
+        <label>Department <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_dept" oninput="render()" value="IT Department">
+      </div>
+      <div class="field">
+        <label>Doc number <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_docNo" oninput="render()" value="HI-IT-N03">
+      </div>
+      <div class="field">
+        <label>Revision number <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_revNo" oninput="render()" value="0">
+      </div>
+      <div class="field">
+        <label>Effective date <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_effDate" oninput="render()" value="20/06/2026">
+      </div>
+      <div class="field">
+        <label>Number of pages <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_numPages" oninput="render()" value="1">
+      </div>
+      <div class="field">
+        <label>Employer name <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_employerName" oninput="render()" value="ALKAM SHAHAM">
+      </div>
+      <div class="field">
+        <label>Employer position <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="c_employerPosition" oninput="render()" value="DEVELOPMENT & IT MANAGER">
+      </div>
+
+      <h2>Enter for each handover</h2>
+      <div class="field">
+        <label>Date printed <span class="tag-user">your input</span></label>
+        <input type="text" id="c_dateTop" oninput="render()" placeholder="e.g. 6/18/2026 3:39:30 PM">
+      </div>
+      <div class="field">
+        <label>Employee name <span class="tag-user">your input</span></label>
+        <input type="text" id="c_employeeName" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Employee ID / number <span class="tag-user">your input</span></label>
+        <input type="text" id="c_employeeId" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Employee position <span class="tag-user">your input</span></label>
+        <input type="text" id="c_employeePosition" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Agreement date/time <span class="tag-user">your input</span></label>
+        <input type="text" id="c_agreementDate" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Return date <span class="tag-user">your input</span></label>
+        <input type="text" id="c_returnDate" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Witness name <span class="tag-user">your input</span></label>
+        <input type="text" id="c_witness" oninput="render()">
+      </div>
+
+      <h2>Equipment list</h2>
+      <div id="equipmentRows"></div>
+      <button type="button" onclick="addEquipmentRow()" style="margin-top:4px;padding:7px 12px;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:3px;cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;">+ Add equipment row</button>
+    </div>
+
+    <div id="editor-certificate" style="display:none;">
+      <h2>Pre-filled details</h2>
+      <div class="field">
+        <label>Issuing organization <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="t_orgName" oninput="render()" value="Riham International Limited">
+      </div>
+      <div class="field">
+        <label>Program name <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="t_program" oninput="render()" value="Cybersecurity & Linux Server Hardening Internship">
+      </div>
+      <div class="field">
+        <label>Standard closing remark <span class="tag-prefill">prefilled</span></label>
+        <input type="text" id="t_remark" oninput="render()" value="awarded in recognition of dedication and successful completion of all program requirements">
+      </div>
+
+      <h2>Enter for each certificate</h2>
+      <div class="field">
+        <label>Recipient full name <span class="tag-user">your input</span></label>
+        <input type="text" id="t_recipient" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Date issued <span class="tag-user">your input</span></label>
+        <input type="date" id="t_dateIssued" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Signatory 1 name <span class="tag-user">your input</span></label>
+        <input type="text" id="t_sig1" oninput="render()">
+      </div>
+      <div class="field">
+        <label>Signatory 2 name <span class="tag-user">your input</span></label>
+        <input type="text" id="t_sig2" oninput="render()">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="doc-pane">
+    <div class="sheet" id="sheet">
+      <!-- filled in by render() -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+function val(id){
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
+function fmtDate(v){
+  if(!v) return "";
+  const d = new Date(v + "T00:00:00");
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+}
+function fillable(text, placeholder){
+  if(!text) return `<span class="fillable empty">[${placeholder}]</span>`;
+  return `<span class="fillable">${escapeHtml(text)}</span>`;
+}
+function escapeHtml(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function switchDocType(type){
+  document.getElementById('editor-contract').style.display = type === 'contract' ? 'block' : 'none';
+  document.getElementById('editor-certificate').style.display = type === 'certificate' ? 'block' : 'none';
+  render();
+}
+
+let equipmentRows = [
+  { type:"PHONE", brand:"SAMSUNG A10S", model:"SM-A107F/DS", serial:"R9WR20ZL34J", imei:"350835011428963 / 354741431428961" }
+];
+
+function addEquipmentRow(){
+  equipmentRows.push({ type:"", brand:"", model:"", serial:"", imei:"" });
+  renderEquipmentEditor();
+  render();
+}
+function removeEquipmentRow(i){
+  equipmentRows.splice(i,1);
+  renderEquipmentEditor();
+  render();
+}
+function updateEquipmentRow(i, field, value){
+  equipmentRows[i][field] = value;
+  render();
+}
+function renderEquipmentEditor(){
+  const container = document.getElementById('equipmentRows');
+  container.innerHTML = equipmentRows.map((row,i) => `
+    <div class="equip-row-controls">
+      <div class="equip-fields">
+        <div><span class="equip-label">Device type</span><input value="${escapeHtml(row.type)}" oninput="updateEquipmentRow(${i},'type',this.value)"></div>
+        <div><span class="equip-label">Brand name</span><input value="${escapeHtml(row.brand)}" oninput="updateEquipmentRow(${i},'brand',this.value)"></div>
+        <div><span class="equip-label">Device model</span><input value="${escapeHtml(row.model)}" oninput="updateEquipmentRow(${i},'model',this.value)"></div>
+        <div><span class="equip-label">Serial number</span><input value="${escapeHtml(row.serial)}" oninput="updateEquipmentRow(${i},'serial',this.value)"></div>
+        <div style="grid-column:1/-1;"><span class="equip-label">Device IMEI</span><input value="${escapeHtml(row.imei)}" oninput="updateEquipmentRow(${i},'imei',this.value)"></div>
+      </div>
+      <button type="button" class="equip-remove" onclick="removeEquipmentRow(${i})" title="Remove row">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderContract(){
+  const orgName        = val('c_orgName') || "[Company Name]";
+  const docTitle        = val('c_docTitle') || "[Document Title]";
+  const dept            = val('c_dept') || "[Department]";
+  const docNo           = val('c_docNo') || "[Doc No]";
+  const revNo           = val('c_revNo') || "[Rev No]";
+  const effDate         = val('c_effDate') || "[Effective Date]";
+  const numPages        = val('c_numPages') || "[No. of Pages]";
+  const employerName    = val('c_employerName') || "[Employer Name]";
+  const employerPosition= val('c_employerPosition') || "[Employer Position]";
+
+  const dateTop         = val('c_dateTop');
+  const employeeName    = val('c_employeeName');
+  const employeeId      = val('c_employeeId');
+  const employeePosition= val('c_employeePosition');
+  const agreementDate   = val('c_agreementDate');
+  const returnDate      = val('c_returnDate');
+  const witness         = val('c_witness');
+
+  const equipRowsHtml = equipmentRows.map(row => `
+    <tr>
+      <td>${row.type ? escapeHtml(row.type) : '&nbsp;'}</td>
+      <td>${row.brand ? escapeHtml(row.brand) : '&nbsp;'}</td>
+      <td>${row.model ? escapeHtml(row.model) : '&nbsp;'}</td>
+      <td>${row.serial ? escapeHtml(row.serial) : '&nbsp;'}</td>
+      <td>${row.imei ? escapeHtml(row.imei) : '&nbsp;'}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <table class="memo-header-table">
+      <tr>
+        <td class="logo-cell">${escapeHtml(orgName.split(' ')[0])}</td>
+        <td class="title-cell">${escapeHtml(dept)}<br>${escapeHtml(docTitle)}</td>
+        <td class="meta-cell">
+          Doc NO: ${escapeHtml(docNo)}<br>
+          Revision No.${escapeHtml(revNo)}<br>
+          Effective Date: ${escapeHtml(effDate)}<br>
+          NO.of Pages: ${escapeHtml(numPages)}
+        </td>
+      </tr>
+    </table>
+
+    <div class="memo-date-line">DATE: ${fillable(dateTop,'Date Printed')}</div>
+
+    <div class="memo-fromto"><span class="k">From:</span> ${escapeHtml(dept)}</div>
+    <div class="memo-fromto"><span class="k">To:</span> ${fillable(employeeName,'Employee Name')}</div>
+    <div class="memo-fromto"><span class="k">Subject:</span> EQUIPMENT HANDOVER</div>
+    <hr class="memo-divider">
+
+    <div class="doc-body">
+      <p>This agreement made on the ${fillable(agreementDate,'Agreement Date/Time')} between <strong>${escapeHtml(orgName)}</strong>, hereafter called the Employer, and <strong>${employeeName ? escapeHtml(employeeName) : fillable('','Employee Name')}</strong> ${employeeId ? `(${escapeHtml(employeeId)})` : fillable('','Employee ID')} thereafter called the Employee. Under general conditions of the mentioned herein, Employer hereby assigns to Employee all equipment named and identified in the Following List of Equipment, for use at such time as therein agreed by the Two (2) parties.</p>
+
+      <p>Employee shall only use the Equipment in a careful and proper manner and will comply with all laws, rules, ordinances, statutes and orders regarding the use and maintenance of the Equipment.</p>
+
+      <p>Employee will, at Employee's sole expense, keep and maintain the Equipment clean and in good working order and repair during the equipment possession Period.
+      In the event the Equipment is lost or damaged beyond repair, Employee shall pay to Employer the replacement cost of the Equipment; in addition, the obligations of this Agreement shall continue in full force and effect through the equipment possession period or employment term.</p>
+
+      <div class="clause-title">LIST OF EQUIPMENT:</div>
+      <table class="equip-table">
+        <thead>
+          <tr>
+            <th>Device Type</th>
+            <th>Brand Name</th>
+            <th>Device Model</th>
+            <th>Serial Number</th>
+            <th>Device IMEI</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${equipRowsHtml || '<tr><td colspan="5" style="text-align:center;color:var(--muted);">No equipment added</td></tr>'}
+        </tbody>
+      </table>
+
+      <p style="margin-top:24px;">In WITNESS WHEREOF, the parties have caused this Agreement to be executed the day and year first above written.</p>
+
+      <div class="witness-block">
+        EMPLOYER NAME: <strong>${escapeHtml(employerName)}</strong><br>
+        (Position, if Applicable): <strong>${escapeHtml(employerPosition)}</strong><br>
+        (Signature): <span class="wline">&nbsp;</span><br><br>
+        EMPLOYEE NAME: <strong>${employeeName ? escapeHtml(employeeName) : fillable('','Employee Name')}</strong><br>
+        (Signature): <span class="wline">&nbsp;</span><br>
+        (Position, if Applicable): ${employeePosition ? escapeHtml(employeePosition) : fillable('','Employee Position')}<br>
+        (RETURN DATE): ${returnDate ? escapeHtml(returnDate) : fillable('','Return Date')}<br>
+        EMPLOYEE NAME: ${employeeName ? escapeHtml(employeeName) : fillable('','Employee Name')}<br>
+        WITNESS: ${witness ? escapeHtml(witness) : '&nbsp;'}
+      </div>
+    </div>
+  `;
+}
+
+function renderCertificate(){
+  const orgName     = val('t_orgName') || "[Organization Name]";
+  const program     = val('t_program') || "[Program Name]";
+  const remark      = val('t_remark') || "[closing remark]";
+  const recipient   = val('t_recipient');
+  const dateIssued  = fmtDate(val('t_dateIssued'));
+  const sig1        = val('t_sig1');
+  const sig2        = val('t_sig2');
+
+  return `
+    <div class="doc-header" style="border-bottom:none;">
+      <div class="org-name">${escapeHtml(orgName)}</div>
+      <div class="doc-title">Certificate of Completion</div>
+    </div>
+    <div class="cert-body">
+      <div class="presented">This certificate is proudly presented to</div>
+      <div class="recipient">${recipient ? escapeHtml(recipient) : '[Recipient Full Name]'}</div>
+      <div class="desc">
+        for successful completion of the <strong>${escapeHtml(program)}</strong>,
+        ${escapeHtml(remark)}.
+      </div>
+      <p>Issued on ${fillable(dateIssued,'Date Issued')}</p>
+
+      <div class="cert-footer">
+        <div class="sig-line">
+          <div class="line"></div>
+          <div class="label">${sig1 ? escapeHtml(sig1) : 'Signatory'}</div>
+        </div>
+        <div class="sig-line">
+          <div class="line"></div>
+          <div class="label">${sig2 ? escapeHtml(sig2) : 'Signatory'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function render(){
+  const type = document.getElementById('docTypeSelect').value;
+  document.getElementById('sheet').innerHTML = type === 'contract' ? renderContract() : renderCertificate();
+}
+
+renderEquipmentEditor();
+render();
+</script>
+
+</body>
+</html>
