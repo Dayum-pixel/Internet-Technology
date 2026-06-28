@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HIL DOC-FORM MAKER</title>
+<style>
+:root{
+  --ink:#1c1f1a;
+  --paper:#fbfaf7;
+  --line:#d8d3c4;
+  --accent:#5b6b4f;
+  --accent-dark:#3f4a37;
+  --muted:#7a7768;
+  --field-bg:#f3f1e9;
+  --warn:#9c4b3f;
+  --overlay:rgba(20,26,18,.72);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Georgia','Iowan Old Style',serif;background:#e9e6db;color:var(--ink);min-height:100vh;}
+
+/* ===================== APP BAR ===================== */
+.app-bar{
+  background:var(--accent-dark);color:#f3f1e9;
+  padding:13px 28px;display:flex;align-items:center;
+  justify-content:space-between;font-family:'Helvetica Neue',Arial,sans-serif;
+  position:sticky;top:0;z-index:10;
+}
+.app-bar h1{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.btn{
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;
+  padding:8px 18px;border-radius:4px;border:1px solid #6d7a62;
+  background:#4b5840;color:#f3f1e9;cursor:pointer;font-weight:500;
+}
+.btn:hover{background:#5a6850;}
+.btn.primary{background:var(--accent);border-color:var(--accent);font-weight:700;}
+.btn.primary:hover{background:#6c7d5e;}
+.btn.ghost{background:transparent;border-color:#9aaa8e;}
+.btn.ghost:hover{background:#4b5840;}
+
+/* ===================== LANDING ===================== */
+#landing{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:calc(100vh - 50px);
+  padding:40px;text-align:center;
+}
+.landing-icon{font-size:56px;margin-bottom:20px;}
+#landing h2{font-size:24px;color:var(--accent-dark);margin-bottom:10px;font-weight:700;}
+#landing p{font-size:14px;color:var(--muted);max-width:400px;line-height:1.75;
+  margin-bottom:32px;font-family:'Helvetica Neue',Arial,sans-serif;}
+.doc-cards{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;}
+.doc-card{
+  background:#fff;border:2px solid var(--line);border-radius:10px;
+  padding:22px 32px;cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;
+  transition:border-color .2s,box-shadow .2s,transform .15s;min-width:170px;
+}
+.doc-card:hover,.doc-card.sel{
+  border-color:var(--accent);box-shadow:0 4px 18px rgba(91,107,79,.22);transform:translateY(-2px);
+}
+.doc-card.sel{background:#f0f3ee;}
+.doc-card .ci{font-size:30px;margin-bottom:10px;}
+.doc-card .ct{font-size:12px;font-weight:700;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ===================== MODAL ===================== */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:var(--overlay);z-index:200;
+  align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:#fff;border-radius:12px;width:100%;max-width:560px;
+  max-height:92vh;display:flex;flex-direction:column;
+  box-shadow:0 12px 50px rgba(0,0,0,.3);overflow:hidden;
+}
+.modal-head{
+  background:var(--accent-dark);color:#f3f1e9;
+  padding:20px 24px 14px;font-family:'Helvetica Neue',Arial,sans-serif;flex-shrink:0;
+}
+.modal-head h2{font-size:15px;font-weight:700;letter-spacing:.04em;}
+.modal-head .sub{font-size:11px;opacity:.7;margin-top:4px;}
+.modal-steps{
+  display:flex;gap:6px;margin-top:14px;
+}
+.mstep{
+  flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.25);
+  transition:background .3s;
+}
+.mstep.done{background:#b8d4a8;}
+.mstep.active{background:#fff;}
+
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+.fsec{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;
+  text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+  margin:0 0 14px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:12px;font-weight:700;color:var(--accent-dark);margin-bottom:5px;}
+.field .hint{font-size:11px;color:var(--muted);margin-bottom:5px;
+  font-style:italic;font-family:'Helvetica Neue',Arial,sans-serif;}
+.field input,.field textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--line);
+  border-radius:4px;font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:13px;color:var(--ink);transition:border-color .15s;
+}
+.field input:focus,.field textarea:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(91,107,79,.12);
+}
+.field.req label::after{content:" *";color:var(--warn);}
+.field input.bad,.field textarea.bad{border-color:var(--warn) !important;}
+.errmsg{font-size:11px;color:var(--warn);margin-top:4px;
+  font-family:'Helvetica Neue',Arial,sans-serif;display:none;}
+.errmsg.show{display:block;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* equipment rows inside modal */
+.ei{border:1px solid var(--line);border-radius:6px;
+  padding:14px;margin-bottom:10px;background:var(--field-bg);}
+.ei-head{display:flex;justify-content:space-between;align-items:center;
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;
+  font-weight:700;color:var(--accent-dark);margin-bottom:10px;}
+.ei-rm{background:none;border:none;color:var(--warn);cursor:pointer;font-size:15px;padding:2px 6px;}
+.add-ei{
+  width:100%;padding:10px;border:1.5px dashed var(--line);
+  border-radius:4px;background:none;font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:13px;color:var(--accent);cursor:pointer;margin-top:4px;
+}
+.add-ei:hover{background:#eef2eb;border-color:var(--accent);}
+
+.modal-foot{
+  padding:16px 24px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;font-family:'Helvetica Neue',Arial,sans-serif;background:#fafaf8;
+}
+.step-info{font-size:12px;color:var(--muted);}
+
+/* ===================== PREVIEW ===================== */
+#preview{display:none;padding:36px 28px;justify-content:center;}
+#preview.show{display:flex;}
+.sheet{
+  background:var(--paper);width:780px;max-width:100%;
+  min-height:960px;padding:52px 60px;
+  box-shadow:0 2px 20px rgba(0,0,0,.18);
+  line-height:1.62;font-size:13.5px;
+}
+/* --- memo doc styles --- */
+.memo-htable{width:100%;border-collapse:collapse;border:1.5px solid var(--ink);margin-bottom:14px;
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;}
+.memo-htable td{border-right:1.5px solid var(--ink);padding:10px 14px;vertical-align:top;}
+.memo-htable td:last-child{border-right:none;}
+.logo-cell{width:20%;text-align:center;font-weight:900;font-size:15px;
+  letter-spacing:.08em;color:var(--accent-dark);vertical-align:middle !important;}
+.title-cell{width:50%;font-weight:700;line-height:1.5;font-family:'Helvetica Neue',Arial,sans-serif;}
+.meta-cell{width:30%;font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.7;font-size:12px;}
+.memo-date{text-align:right;font-size:12px;font-family:'Helvetica Neue',Arial,sans-serif;margin-bottom:12px;}
+.memo-ft{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:1.8;}
+.memo-ft .k{display:inline-block;width:72px;font-weight:700;}
+.mdiv{border:none;border-top:1px dashed var(--ink);margin:12px 0 20px;}
+.doc-body p{margin:0 0 14px;}
+.clause-title{font-weight:700;font-family:'Helvetica Neue',Arial,sans-serif;
+  margin:18px 0 6px;font-size:13px;}
+.etable{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;margin-top:4px;}
+.etable th,.etable td{border:1px solid var(--ink);padding:8px 10px;text-align:left;vertical-align:top;}
+.etable th{background:var(--field-bg);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+.wblock{margin-top:32px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:2.6;}
+.wline{border-bottom:1px solid var(--ink);display:inline-block;min-width:240px;}
+
+/* --- cert styles --- */
+.cert-top{text-align:center;margin-bottom:30px;border-bottom:2px solid var(--accent-dark);padding-bottom:20px;}
+.cert-orgname{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.cert-title{font-size:28px;font-weight:700;color:var(--accent-dark);margin-top:6px;}
+.cert-body{text-align:center;padding-top:8px;}
+.cert-presented{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.cert-name{font-size:32px;font-weight:700;color:var(--accent-dark);
+  margin:10px 0 16px;border-bottom:1px solid var(--line);display:inline-block;padding-bottom:8px;}
+.cert-desc{max-width:500px;margin:0 auto 24px;font-size:14.5px;color:var(--ink);}
+.cert-sigs{display:flex;justify-content:space-around;margin-top:48px;}
+.cert-sl{width:220px;text-align:center;}
+.cert-sl .line{border-bottom:1px solid var(--ink);height:34px;}
+.cert-sl .lbl{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:var(--muted);margin-top:5px;}
+
+/* ===================== PRINT ===================== */
+@media print{
+  .app-bar,#landing,.modal-overlay{display:none !important;}
+  body{background:#fff;}
+  #preview{display:flex !important;padding:0;}
+  .sheet{box-shadow:none;padding:0;min-height:0;width:auto;}
+  .memo-htable,.etable{break-inside:avoid;}
+  .etable tr{break-inside:avoid;}
+}
+@media(max-width:640px){
+  .sheet{padding:28px 18px;}
+  .frow{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== APP BAR ===================== -->
+<div class="app-bar">
+  <h1>📄 DOC FORMS</h1>
+  <div id="appBarRight"></div>
+</div>
+
+<!-- ===================== LANDING ===================== -->
+<div id="landing">
+  <div class="landing-icon">🗂️</div>
+  <h2>What would you like to generate?</h2>
+  <p>Select a document type below.</p>
+  <div class="doc-cards">
+    <div class="doc-card" id="card-contract" onclick="selectDoc('contract')">
+      <div class="ci">📋</div>
+      <div class="ct">Equipment Handling<br>Agreement</div>
+    </div>
+    <div class="doc-card" id="card-certificate" onclick="selectDoc('certificate')">
+      <div class="ci">🎓</div>
+      <div class="ct">Certificate of<br>Completion</div>
+    </div>
+  </div>
+  <button class="btn primary" onclick="openForm()" id="startBtn" style="opacity:.4;pointer-events:none;font-size:14px;padding:12px 32px;">
+    Continue →
+  </button>
+</div>
+
+<!-- ===================== PREVIEW ===================== -->
+<div id="preview">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Fill in document details</h2>
+      <div class="sub" id="modalSub">Required fields are marked with *</div>
+      <div class="modal-steps" id="modalSteps"></div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <span class="step-info" id="stepInfo"></span>
+      <div style="display:flex;gap:10px;">
+        <button class="btn ghost" id="btnBack" onclick="stepBack()">← Back</button>
+        <button class="btn primary" id="btnNext" onclick="stepNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====================================================
+// PREFILLED — never shown to user
+// ====================================================
+const PREFILL = {
+  contract: {
+    orgName:          "HARISS INTERNATIONAL LIMITED",
+    dept:             "IT Department",
+    docTitle:         "Employee Equipment Handling Agreement",
+    docNo:            "HI-IT-N03",
+    revNo:            "0",
+    effDate:          "16/12/2019",
+    numPages:         "1",
+    employerName:     "ALKAM SHAHAM",
+    employerPosition: "DEVELOPMENT & IT MANAGER",
+  },
+  certificate: {
+    orgName:  "HARISS International Limited",
+    program:  "IT Department Internship Program",
+    remark:   "awarded in recognition of dedication and successful completion of all program requirements",
+  }
+};
+
+// ====================================================
+// STATE
+// ====================================================
+let currentDoc = null;
+let currentStep = 0;
+let formData = {};
+let equipRows = [{ type:"", brand:"", model:"", serial:"", imei:"" }];
+
+// ====================================================
+// DOC TYPE SELECTION
+// ====================================================
+function selectDoc(type){
+  currentDoc = type;
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById('card-'+type).classList.add('sel');
+  const btn = document.getElementById('startBtn');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+}
+
+// ====================================================
+// STEPS CONFIG
+// ====================================================
+function getSteps(){
+  if(currentDoc === 'contract'){
+    return [
+      {
+        title: "Employee Details",
+        sub: "Who is receiving the equipment?",
+        fields: [
+          { id:"employeeName",     label:"Employee full name",   req:true,  placeholder:"e.g. EMURON TIMOTHY" },
+          { id:"employeeId",       label:"Employee ID / number", req:true,  placeholder:"e.g. 700572" },
+          { id:"employeePosition", label:"Employee position",    req:true,  placeholder:"e.g. SALES EXECUTIVE" },
+        ]
+      },
+      {
+        title: "Dates",
+        sub: "When does this agreement apply?",
+        fields: [
+          { id:"agreementDate", label:"Agreement date & time", req:false,
+            hint:"Leave blank to auto-fill with today's date and time",
+            placeholder:"e.g. 6/18/2026 3:41:42 PM" },
+          { id:"returnDate",    label:"Return date",           req:false, placeholder:"e.g. 12/18/2026" },
+        ]
+      },
+      {
+        title: "Equipment List",
+        sub: "Add all items being handed over",
+        type: "equipment"
+      },
+      {
+        title: "Witness",
+        sub: "Optional — leave blank if not needed",
+        fields: [
+          { id:"witness", label:"Witness name", req:false, placeholder:"e.g. (Optional)" },
+        ]
+      }
+    ];
+  } else {
+    return [
+      {
+        title: "Recipient",
+        sub: "Who is this certificate for?",
+        fields: [
+          { id:"recipient", label:"Recipient full name", req:true, placeholder:"e.g. EMURON TIMOTHY" },
+        ]
+      },
+      {
+        title: "Date & Signatories",
+        sub: "When was this awarded and who signs?",
+        fields: [
+          { id:"dateIssued", label:"Date issued",      req:true,  placeholder:"e.g. June 27, 2026" },
+          { id:"sig1",       label:"Signatory 1 name / title", req:true,  placeholder:"e.g. Director of Operations" },
+          { id:"sig2",       label:"Signatory 2 name / title", req:true,  placeholder:"e.g. Program Supervisor" },
+        ]
+      }
+    ];
+  }
+}
+
+// ====================================================
+// OPEN / CLOSE FORM
+// ====================================================
+function openForm(){
+  if(!currentDoc) return;
+  currentStep = 0;
+  formData = {};
+  equipRows = [{ type:"", brand:"", model:"", serial:"", imei:"" }];
+  renderModal();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ====================================================
+// RENDER MODAL FOR CURRENT STEP
+// ====================================================
+function renderModal(){
+  const steps = getSteps();
+  const step = steps[currentStep];
+  const total = steps.length;
+  const isLast = currentStep === total - 1;
+
+  // Header
+  document.getElementById('modalTitle').textContent = step.title;
+  document.getElementById('modalSub').textContent = step.sub;
+
+  // Progress dots
+  let dots = '';
+  for(let i = 0; i < total; i++){
+    let cls = i < currentStep ? 'done' : i === currentStep ? 'active' : '';
+    dots += `<div class="mstep ${cls}"></div>`;
+  }
+  document.getElementById('modalSteps').innerHTML = dots;
+
+  // Step label
+  document.getElementById('stepInfo').textContent = `Step ${currentStep+1} of ${total}`;
+
+  // Back button visibility
+  document.getElementById('btnBack').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+
+  // Next / Submit label
+  document.getElementById('btnNext').textContent = isLast ? '✔ Generate Document' : 'Next →';
+
+  // Body
+  if(step.type === 'equipment'){
+    renderEquipStep();
+  } else {
+    renderFieldStep(step);
+  }
+}
+
+function renderFieldStep(step){
+  let html = '';
+  step.fields.forEach(f => {
+    const saved = formData[f.id] || '';
+    html += `
+      <div class="field ${f.req ? 'req' : ''}">
+        <label>${f.label}</label>
+        ${f.hint ? `<div class="hint">${f.hint}</div>` : ''}
+        <input id="fi_${f.id}" value="${esc(saved)}" placeholder="${esc(f.placeholder||'')}">
+        <div class="errmsg" id="em_${f.id}">This field is required.</div>
+      </div>
+    `;
+  });
+  document.getElementById('modalBody').innerHTML = html;
+}
+
+function renderEquipStep(){
+  let html = `<div class="fsec">Equipment items</div>`;
+  equipRows.forEach((row, i) => {
+    html += `
+      <div class="ei">
+        <div class="ei-head">
+          Item ${i+1}
+          ${equipRows.length > 1 ? `<button class="ei-rm" onclick="removeEquip(${i})">✕ Remove</button>` : ''}
+        </div>
+        <div class="frow">
+          <div class="field"><label>Device type</label>
+            <input value="${esc(row.type)}" placeholder="e.g. PHONE" oninput="equipRows[${i}].type=this.value">
+          </div>
+          <div class="field"><label>Brand name</label>
+            <input value="${esc(row.brand)}" placeholder="e.g. SAMSUNG A10S" oninput="equipRows[${i}].brand=this.value">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="field"><label>Device model</label>
+            <input value="${esc(row.model)}" placeholder="e.g. SM-A107F/DS" oninput="equipRows[${i}].model=this.value">
+          </div>
+          <div class="field"><label>Serial number</label>
+            <input value="${esc(row.serial)}" placeholder="e.g. R9WR20ZL34J" oninput="equipRows[${i}].serial=this.value">
+          </div>
+        </div>
+        <div class="field"><label>Device IMEI</label>
+          <input value="${esc(row.imei)}" placeholder="e.g. 350835011428963" oninput="equipRows[${i}].imei=this.value">
+        </div>
+      </div>
+    `;
+  });
+  html += `<button class="add-ei" onclick="addEquip()">+ Add another item</button>`;
+  document.getElementById('modalBody').innerHTML = html;
+}
+
+function addEquip(){
+  equipRows.push({ type:"", brand:"", model:"", serial:"", imei:"" });
+  renderEquipStep();
+}
+function removeEquip(i){
+  equipRows.splice(i,1);
+  renderEquipStep();
+}
+
+// ====================================================
+// NAVIGATION
+// ====================================================
+function stepNext(){
+  const steps = getSteps();
+  const step = steps[currentStep];
+
+  // Validate regular fields
+  if(step.fields){
+    let ok = true;
+    step.fields.forEach(f => {
+      if(!f.req) return;
+      const inp = document.getElementById('fi_'+f.id);
+      const em  = document.getElementById('em_'+f.id);
+      const val = inp ? inp.value.trim() : '';
+      if(!val){
+        inp && inp.classList.add('bad');
+        em && em.classList.add('show');
+        ok = false;
+      } else {
+        inp && inp.classList.remove('bad');
+        em && em.classList.remove('show');
+      }
+    });
+    if(!ok) return;
+
+    // Save values
+    step.fields.forEach(f => {
+      const inp = document.getElementById('fi_'+f.id);
+      if(inp) formData[f.id] = inp.value.trim();
+    });
+  }
+
+  if(currentStep < steps.length - 1){
+    currentStep++;
+    renderModal();
+  } else {
+    // Last step — generate
+    finalizeAndShow();
+  }
+}
+
+function stepBack(){
+  if(currentStep > 0){
+    currentStep--;
+    renderModal();
+  }
+}
+
+// ====================================================
+// FINALIZE & SHOW DOCUMENT
+// ====================================================
+function finalizeAndShow(){
+  closeModal();
+  document.getElementById('landing').style.display = 'none';
+  const preview = document.getElementById('preview');
+  preview.classList.add('show');
+
+  document.getElementById('sheet').innerHTML =
+    currentDoc === 'contract' ? renderContract() : renderCertificate();
+
+  document.getElementById('appBarRight').innerHTML = `
+    <div style="display:flex;gap:10px;">
+      <button class="btn ghost" onclick="goBack()">← New Document</button>
+      <button class="btn primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+    </div>`;
+}
+
+function goBack(){
+  document.getElementById('preview').classList.remove('show');
+  document.getElementById('landing').style.display = '';
+  document.getElementById('appBarRight').innerHTML = '';
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('sel'));
+  const btn = document.getElementById('startBtn');
+  btn.style.opacity = '.4';
+  btn.style.pointerEvents = 'none';
+  currentDoc = null;
+  formData = {};
+}
+
+// ====================================================
+// RENDER CONTRACT
+// ====================================================
+function renderContract(){
+  const P = PREFILL.contract;
+  const D = formData;
+
+  const now = new Date();
+  const nowStr = now.toLocaleDateString('en-US') + ' ' + now.toLocaleTimeString('en-US');
+  const dateTop = nowStr;
+  const agDate  = D.agreementDate || nowStr;
+
+  const validEquip = equipRows.filter(r => r.type || r.brand || r.model || r.serial || r.imei);
+  const erows = validEquip.length
+    ? validEquip.map(r => `
+        <tr>
+          <td>${esc(r.type)||'&nbsp;'}</td>
+          <td>${esc(r.brand)||'&nbsp;'}</td>
+          <td>${esc(r.model)||'&nbsp;'}</td>
+          <td>${esc(r.serial)||'&nbsp;'}</td>
+          <td>${esc(r.imei)||'&nbsp;'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--muted);">&nbsp;</td></tr>`;
+
+  return `
+    <table class="memo-htable">
+      <tr>
+        <td class="logo-cell">${esc(P.orgName.split(' ')[0])}</td>
+        <td class="title-cell">${esc(P.dept)}<br>${esc(P.docTitle)}</td>
+        <td class="meta-cell">
+          Doc NO: ${esc(P.docNo)}<br>
+          Revision No.${esc(P.revNo)}<br>
+          Effective Date: ${esc(P.effDate)}<br>
+          NO.of Pages: ${esc(P.numPages)}
+        </td>
+      </tr>
+    </table>
+    <div class="memo-date">DATE: ${esc(dateTop)}</div>
+    <div class="memo-ft"><span class="k">From:</span> IT DEPARTMENT</div>
+    <div class="memo-ft"><span class="k">To:</span> ${esc(D.employeeName)}</div>
+    <div class="memo-ft"><span class="k">Subject:</span> EQUIPMENT HANDOVER</div>
+    <hr class="mdiv">
+
+    <div class="doc-body">
+      <p>This agreement made on the <strong>${esc(agDate)}</strong> between <strong>${esc(P.orgName)},</strong>
+      hereafter called the Employer, and <strong>${esc(D.employeeName)}</strong>
+      (${esc(D.employeeId)}) thereafter called the Employee.
+      Under general conditions of the mentioned herein, Employer hereby assigns to Employee all
+      equipment named and identified in the Following List of Equipment, for use at such time as
+      therein agreed by the Two (2) parties.</p>
+
+      <p><em>Employee shall only use the Equipment in a careful and proper manner and will comply with all
+      laws, rules, ordinances, statutes and orders regarding the use and maintenance of the Equipment.</em></p>
+
+      <p>Employee will, at Employee's sole expense, keep and maintain the Equipment clean and in good working
+      order and repair during the equipment possession Period.<br>
+      In the event the Equipment is lost or damaged beyond repair, Employee shall pay to Employer the replacement
+      cost of the Equipment; in addition, the obligations of this Agreement shall continue in full force and
+      effect through the equipment possession period or employment term.</p>
+
+      <div class="clause-title">LIST OF EQUIPMENT:</div>
+      <table class="etable">
+        <thead>
+          <tr>
+            <th>Device Type</th><th>Brand Name</th><th>Device Model</th>
+            <th>Serial Number</th><th>Device IMEI</th>
+          </tr>
+        </thead>
+        <tbody>${erows}</tbody>
+      </table>
+
+      <p style="margin-top:22px;">In WITNESS WHEREOF, the parties have caused this Agreement to be executed
+      the day and year first above written.</p>
+
+      <div class="wblock">
+        EMPLOYER NAME: &nbsp;<strong>${esc(P.employerName)}</strong><br>
+        (Position, if Applicable): &nbsp;<strong>${esc(P.employerPosition)}</strong><br>
+        (Signature): <span class="wline">&nbsp;</span><br><br>
+        EMPLOYEE NAME: &nbsp;<strong>${esc(D.employeeName)}</strong><br>
+        (Signature): <span class="wline">&nbsp;</span><br>
+        (Position, if Applicable): &nbsp;<strong>${esc(D.employeePosition||'')}</strong><br>
+        (RETURN DATE): &nbsp;${D.returnDate ? esc(D.returnDate) : ''}<br>
+        EMPLOYEE NAME: &nbsp;${esc(D.employeeName)}<br>
+        WITNESS: &nbsp;${D.witness ? esc(D.witness) : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ====================================================
+// RENDER CERTIFICATE
+// ====================================================
+function renderCertificate(){
+  const P = PREFILL.certificate;
+  const D = formData;
+  return `
+    <div class="cert-top">
+      <div class="cert-orgname">${esc(P.orgName)}</div>
+      <div class="cert-title">Certificate of Completion</div>
+    </div>
+    <div class="cert-body">
+      <div class="cert-presented">This certificate is proudly presented to</div>
+      <div class="cert-name">${esc(D.recipient)}</div>
+      <div class="cert-desc">
+        for successful completion of the <strong>${esc(P.program)}</strong>,
+        ${esc(P.remark)}.
+      </div>
+      <p>Issued on <strong>${esc(D.dateIssued)}</strong></p>
+      <div class="cert-sigs">
+        <div class="cert-sl">
+          <div class="line"></div>
+          <div class="lbl">${esc(D.sig1)}</div>
+        </div>
+        <div class="cert-sl">
+          <div class="line"></div>
+          <div class="lbl">${esc(D.sig2)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ====================================================
+// UTILS
+// ====================================================
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+</script>
+</body>
+</html>
